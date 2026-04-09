@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HF POS">
+<meta name="theme-color" content="#5c4a3a">
+<title>Hanakoto Florelle POS</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSGFuYWtvdG8gRmxvcmVsbGUgUE9TIiwic2hvcnRfbmFtZSI6IkhGIFBPUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZmFmNmYwIiwidGhlbWVfY29sb3IiOiIjNWM0YTNhIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyM1YzRhM2EnLz48dGV4dCB4PSc1MCcgeT0nNjAnIGZvbnQtc2l6ZT0nNDAnIHRleHQtYW5jaG9yPSdtaWRkbGUnPvCfjJs8L3RleHQ+PC9zdmc+Iiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:#faf6f0}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+button{cursor:pointer;-webkit-appearance:none;font-family:'DM Sans',sans-serif}
+input,select{font-family:'DM Sans',sans-serif}
+
+#app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#faf6f0 0%,#f5ede3 100%);position:relative}
+
+.header{padding:env(safe-area-inset-top,12px) 16px 8px;text-align:center;background:linear-gradient(135deg,rgba(92,74,58,.03),rgba(201,149,107,.06));flex-shrink:0}
+.header h1{font-family:'Playfair Display',serif;font-size:20px;color:#5c4a3a;letter-spacing:.5px}
+.header .sub{font-size:10px;color:#c9956b;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+
+.tab-bar{display:flex;gap:2px;padding:6px 10px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #e8ddd0;flex-shrink:0;overflow-x:auto}
+.tab-btn{flex:1;padding:8px 4px;border:none;border-radius:10px;background:transparent;color:#8a7560;font-size:10px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:54px;white-space:nowrap;transition:all .2s}
+.tab-btn.active{background:#5c4a3a;color:#faf6f0}
+.tab-btn .ico{font-size:18px}
+
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,20px)}
+.page{padding:16px;display:none;flex-direction:column;gap:14px}
+.page.active{display:flex}
+
+.section-title{font-family:'Playfair Display',serif;color:#5c4a3a;font-size:19px}
+.hint{color:#a08e7a;font-size:13px;line-height:1.5}
+
+.card{background:#fff;border-radius:14px;border:1px solid #e8ddd0;padding:14px 16px}
+.stat-card{flex:1 1 140px;padding:16px 14px;border-radius:14px;border:1px solid #e8ddd0;background:#fff}
+.stat-card.accent{background:linear-gradient(135deg,#5c4a3a,#7a6350);border:none;box-shadow:0 4px 20px rgba(92,74,58,.2)}
+.stat-card .ico{font-size:22px;margin-bottom:4px}
+.stat-card .val{font-size:20px;font-weight:700;color:#5c4a3a;font-family:'Playfair Display',serif}
+.stat-card.accent .val{color:#faf6f0}
+.stat-card .lbl{font-size:11px;color:#a08e7a;margin-top:2px}
+.stat-card.accent .lbl{color:rgba(250,246,240,.7)}
+.stat-card .sub2{font-size:10px;color:#c9956b;margin-top:3px}
+.stat-card.accent .sub2{color:rgba(250,246,240,.5)}
+
+.photo-zone{width:100%;padding:44px 20px;border-radius:18px;border:2px dashed #d4c5b5;background:rgba(250,246,240,.6);text-align:center;transition:all .25s}
+.photo-zone:active{border-color:#c9956b;background:rgba(201,149,107,.08)}
+.photo-zone .cam{font-size:44px;margin-bottom:10px}
+.photo-zone .t1{color:#5c4a3a;font-weight:600;font-size:14px}
+.photo-zone .t2{color:#a08e7a;font-size:12px;margin-top:4px}
+
+.preview-img{width:100%;border-radius:14px;box-shadow:0 8px 28px rgba(92,74,58,.14)}
+.preview-wrap{position:relative;max-width:320px;margin:0 auto}
+.preview-close{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:none;font-size:15px;display:flex;align-items:center;justify-content:center}
+
+.flower-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#faf6f0;border-radius:12px;border:1px solid #e8ddd0}
+.flower-row .em{font-size:22px}
+.flower-row .nm{font-weight:600;color:#5c4a3a;font-size:13px;flex:1}
+.flower-row .sub-nm{font-size:10px;color:#a08e7a}
+.qty-ctrl{display:flex;align-items:center;gap:5px}
+.qty-btn{width:28px;height:28px;border-radius:8px;border:1px solid #d4c5b5;background:#fff;font-size:15px;color:#5c4a3a;display:flex;align-items:center;justify-content:center}
+.qty-input{width:40px;text-align:center;border:1px solid #d4c5b5;border-radius:8px;padding:4px 0;font-weight:600;font-size:13px;color:#5c4a3a}
+.del-btn{background:none;border:none;font-size:16px;padding:4px}
+
+.btn{padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;transition:all .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#5c4a3a,#7a6350);color:#faf6f0;box-shadow:0 4px 16px rgba(92,74,58,.25)}
+.btn-green{background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;box-shadow:0 4px 16px rgba(46,125,50,.25)}
+.btn-outline{background:#fff;color:#5c4a3a;border:1px solid #d4c5b5}
+.btn-row{display:flex;gap:10px}
+.btn-row .btn{flex:1}
+.btn-row .btn-primary,.btn-row .btn-green{flex:2}
+
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:12px;font-weight:700;color:#5c4a3a}
+.input-group input,.input-group select{padding:10px 12px;border-radius:10px;border:1px solid #d4c5b5;font-size:14px;color:#5c4a3a;background:#fff}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600}
+.badge-high{background:rgba(46,125,50,.1);color:#2e7d32}
+.badge-medium{background:rgba(201,149,107,.2);color:#c9956b}
+.badge-low{background:rgba(220,80,60,.1);color:#c0392b}
+
+.alert-box{padding:12px 14px;border-radius:12px;font-size:12px}
+.alert-warn{background:rgba(220,80,60,.06);border:1px solid rgba(220,80,60,.15);color:#c0392b}
+.alert-info{background:rgba(201,149,107,.08);border:1px solid rgba(201,149,107,.2);color:#5c4a3a}
+.alert-success{background:rgba(46,125,50,.06);border:1px solid rgba(46,125,50,.15);color:#2e7d32}
+
+.catalog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.catalog-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:12px;border:1px solid #e8ddd0;background:#fff;transition:all .15s}
+.catalog-item:active{background:#faf6f0;border-color:#c9956b}
+.catalog-item .em{font-size:26px}
+.catalog-item .nm{font-size:10px;color:#5c4a3a;font-weight:600;text-align:center;line-height:1.3}
+
+.history-item{padding:12px 14px;background:#fff;border-radius:12px;border:1px solid #e8ddd0}
+.history-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.history-date{font-size:11px;color:#a08e7a}
+.history-price{font-weight:700;font-size:14px;color:#5c4a3a}
+.history-price.expense{color:#2e7d32}
+.flower-tags{display:flex;flex-wrap:wrap;gap:5px}
+.flower-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#faf6f0;border-radius:6px;font-size:11px;color:#5c4a3a;font-weight:500}
+.history-note{margin-top:5px;font-size:11px;color:#8a7560;font-style:italic}
+
+.done-screen{text-align:center;padding:36px 20px}
+.done-screen .big{font-size:52px}
+.done-screen h3{font-family:'Playfair Display',serif;color:#5c4a3a;font-size:19px;margin:10px 0 4px}
+.done-screen p{color:#a08e7a;font-size:13px}
+
+.inv-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid #e8ddd0;background:#fff}
+.inv-row.low{background:rgba(201,149,107,.04);border-color:rgba(201,149,107,.2)}
+.inv-row.out{background:rgba(220,80,60,.03);border-color:rgba(220,80,60,.12)}
+.inv-qty{padding:4px 10px;border-radius:8px;background:rgba(92,74,58,.08);font-weight:700;font-size:14px;color:#5c4a3a;min-width:40px;text-align:center}
+.inv-qty.low{background:rgba(201,149,107,.15)}
+.inv-qty.out{background:rgba(220,80,60,.1);color:#c0392b}
+
+.loading{text-align:center;padding:20px}
+.loading .spin{display:inline-block;font-size:28px;animation:spin 1.2s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+.settings-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fff;border-radius:12px;border:1px solid #e8ddd0}
+.toggle{position:relative;width:44px;height:24px;border-radius:12px;background:#d4c5b5;border:none;transition:all .2s;flex-shrink:0}
+.toggle.on{background:#5c4a3a}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle.on::after{left:22px}
+
+.sub-tabs{display:flex;gap:6px}
+.sub-tab{flex:1;padding:9px 0;border-radius:10px;border:none;font-size:12px;font-weight:600;transition:all .2s}
+.sub-tab.active{background:#5c4a3a;color:#faf6f0}
+.sub-tab:not(.active){background:#f0e8de;color:#8a7560}
+
+.top-seller{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-radius:10px;border:1px solid #e8ddd0}
+.top-rank{font-size:12px;font-weight:700;color:#c9956b;width:20px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>Hanakoto Florelle</h1>
+    <div class="sub">Point of Sale</div>
+  </div>
+  <div class="tab-bar" id="tabBar"></div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// HANAKOTO FLORELLE POS — Standalone PWA
+// ══════════════════════════════════════════════
+
+const CATALOG = {
+  sunflower:{name:"Sunflower",emoji:"🌻",cost:35,price:80},
+  rose:{name:"Rose",emoji:"🌹",cost:25,price:65},
+  tulip:{name:"Tulip",emoji:"🌷",cost:40,price:85},
+  peony:{name:"Peony",emoji:"🪻",cost:55,price:120},
+  carnation:{name:"Carnation",emoji:"🌸",cost:15,price:45},
+  chrysanthemum:{name:"Chrysanthemum",emoji:"🏵️",cost:20,price:50},
+  daisy:{name:"Daisy",emoji:"🌼",cost:12,price:35},
+  lily:{name:"Lily",emoji:"💐",cost:45,price:95},
+  orchid:{name:"Orchid",emoji:"🪷",cost:60,price:130},
+  gerbera:{name:"Gerbera Daisy",emoji:"🌺",cost:20,price:55},
+  eucalyptus:{name:"Eucalyptus",emoji:"🌿",cost:18,price:40},
+  babys_breath:{name:"Baby's Breath",emoji:"🤍",cost:10,price:30},
+  statice:{name:"Statice",emoji:"💜",cost:15,price:40},
+  ranunculus:{name:"Ranunculus",emoji:"🩷",cost:50,price:110},
+  lavender:{name:"Lavender",emoji:"💟",cost:22,price:55},
+  sampaguita:{name:"Sampaguita",emoji:"🇵🇭",cost:8,price:25},
+  hydrangea:{name:"Hydrangea",emoji:"💙",cost:65,price:140},
+};
+
+const WRAPPING = {
+  kraft_paper:{name:"Kraft Paper",cost:15,price:30},
+  tissue_paper:{name:"Tissue Paper",cost:10,price:20},
+  cream_wrap:{name:"Cream Wrap",cost:18,price:35},
+  burlap:{name:"Burlap Wrap",cost:20,price:40},
+  satin_ribbon:{name:"Satin Ribbon",cost:12,price:25},
+  abaca_wrap:{name:"Abaca Wrap",cost:25,price:50},
+  message_card:{name:"Message Card",cost:5,price:15},
+};
+
+// ── Storage ──
+const DB = {
+  get(k){ try{return JSON.parse(localStorage.getItem('hf_'+k))}catch{return null} },
+  set(k,v){ localStorage.setItem('hf_'+k,JSON.stringify(v)) },
+};
+
+let state = {
+  tab:'dashboard',
+  inventory: DB.get('inventory') || {},
+  sales: DB.get('sales') || [],
+  purchases: DB.get('purchases') || [],
+  settings: DB.get('settings') || { apiKey:'', aiEnabled:false },
+};
+
+function save(){
+  DB.set('inventory',state.inventory);
+  DB.set('sales',state.sales);
+  DB.set('purchases',state.purchases);
+  DB.set('settings',state.settings);
+}
+
+// ── AI Identification ──
+async function identifyFlowers(b64, mode){
+  if(!state.settings.apiKey) throw new Error('No API key');
+  const sys = mode==='sale'
+    ? `You are a flower shop POS assistant. Identify flowers and wrapping in this sold bouquet photo. Respond ONLY with JSON (no markdown): {"flowers":[{"type":"key","name":"Name","quantity":3}],"wrapping":[{"type":"key","name":"Name","quantity":1}],"notes":"brief","confidence":"high/medium/low"} Valid flower keys: ${Object.keys(CATALOG).join(', ')}. Valid wrapping keys: ${Object.keys(WRAPPING).join(', ')}. Use closest match.`
+    : `You are a flower shop POS assistant. Identify and count flowers in this bulk purchase photo. Respond ONLY with JSON (no markdown): {"flowers":[{"type":"key","name":"Name","quantity":10}],"notes":"brief","confidence":"high/medium/low"} Valid flower keys: ${Object.keys(CATALOG).join(', ')}. Use closest match.`;
+  const r = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':state.settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:sys,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},{type:'text',text:mode==='sale'?'Identify flowers and wrapping.':'Count the flowers.'}]}]})
+  });
+  const d=await r.json();
+  const t=d.content?.[0]?.text||'';
+  return JSON.parse(t.replace(/```json|```/g,'').trim());
+}
+
+function compressImage(file){
+  return new Promise(res=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        let w=img.width,h=img.height;const M=800;
+        if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}}
+        c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+        res(c.toDataURL('image/jpeg',.7).split(',')[1]);
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Tab Bar ──
+const TABS=[
+  {id:'dashboard',label:'Dashboard',icon:'📊'},
+  {id:'sale',label:'Record Sale',icon:'💐'},
+  {id:'restock',label:'Restock',icon:'📦'},
+  {id:'inventory',label:'Inventory',icon:'🌿'},
+  {id:'history',label:'History',icon:'📋'},
+  {id:'settings',label:'Settings',icon:'⚙️'},
+];
+
+function renderTabs(){
+  document.getElementById('tabBar').innerHTML=TABS.map(t=>`
+    <button class="tab-btn ${state.tab===t.id?'active':''}" onclick="switchTab('${t.id}')">
+      <span class="ico">${t.icon}</span>${t.label}
+    </button>
+  `).join('');
+}
+
+function switchTab(id){
+  state.tab=id;
+  renderTabs();
+  renderPage();
+}
+
+// ── Page Router ──
+function renderPage(){
+  const c=document.getElementById('content');
+  switch(state.tab){
+    case'dashboard':c.innerHTML=dashboardHTML();break;
+    case'sale':c.innerHTML=saleHTML();break;
+    case'restock':c.innerHTML=restockHTML();break;
+    case'inventory':c.innerHTML=inventoryHTML();break;
+    case'history':c.innerHTML=historyHTML();break;
+    case'settings':c.innerHTML=settingsHTML();break;
+  }
+}
+
+// ═══ DASHBOARD ═══
+function dashboardHTML(){
+  const inv=state.inventory;
+  const totalStems=Object.values(inv).reduce((a,b)=>a+b,0);
+  const varieties=Object.keys(inv).filter(k=>inv[k]>0).length;
+  const now=new Date();
+  const todayStr=now.toDateString();
+  const todaySales=state.sales.filter(s=>new Date(s.date).toDateString()===todayStr);
+  const todayRev=todaySales.reduce((a,s)=>a+(s.totalPrice||0),0);
+  const todayCost=todaySales.reduce((a,s)=>a+(s.totalCost||0),0);
+  const weekAgo=Date.now()-7*864e5;
+  const weekSales=state.sales.filter(s=>new Date(s.date).getTime()>weekAgo);
+  const weekRev=weekSales.reduce((a,s)=>a+(s.totalPrice||0),0);
+
+  const low=Object.entries(inv).filter(([,q])=>q>0&&q<=10).map(([k,q])=>({k,q,...(CATALOG[k]||{name:k,emoji:'🌸'})}));
+  const out=Object.entries(inv).filter(([,q])=>q<=0).map(([k,q])=>({k,q,...(CATALOG[k]||{name:k,emoji:'🌸'})}));
+
+  const ts={};
+  state.sales.forEach(s=>(s.flowers||[]).forEach(f=>{ts[f.type]=(ts[f.type]||0)+f.quantity}));
+  const topList=Object.entries(ts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,q])=>({k,q,...(CATALOG[k]||{name:k,emoji:'🌸'})}));
+
+  const hr=now.getHours();
+  const greet=hr<12?'morning':hr<18?'afternoon':'evening';
+  const dateStr=now.toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  let html=`<div class="page active">
+    <div><div class="section-title">Good ${greet}, Gio</div><div class="hint" style="font-size:12px">${dateStr}</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="stat-card accent"><div class="ico">💰</div><div class="val">₱${todayRev.toLocaleString()}</div><div class="lbl">Today's Revenue</div><div class="sub2">${todaySales.length} sale${todaySales.length!==1?'s':''}</div></div>
+      <div class="stat-card"><div class="ico">📈</div><div class="val">₱${(todayRev-todayCost).toLocaleString()}</div><div class="lbl">Today's Profit</div><div class="sub2">revenue − cost</div></div>
+      <div class="stat-card"><div class="ico">🌿</div><div class="val">${totalStems}</div><div class="lbl">Total Stems</div><div class="sub2">${varieties} varieties</div></div>
+      <div class="stat-card"><div class="ico">📅</div><div class="val">₱${weekRev.toLocaleString()}</div><div class="lbl">This Week</div><div class="sub2">${weekSales.length} sales</div></div>
+    </div>`;
+
+  if(out.length||low.length){
+    html+=`<div class="alert-box ${out.length?'alert-warn':'alert-info'}"><div style="font-weight:700;margin-bottom:6px">${out.length?'⚠️ Stock Alert':'📋 Low Stock'}</div>`;
+    out.forEach(f=>{html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;color:#c0392b">${f.emoji} <b>${f.name}</b> — out of stock</div>`});
+    low.forEach(f=>{html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px;color:#a08e7a">${f.emoji} <b>${f.name}</b> — ${f.q} stems left</div>`});
+    html+=`</div>`;
+  }
+
+  if(topList.length){
+    html+=`<div><div class="section-title" style="font-size:15px;margin-bottom:8px">Top Sellers</div>`;
+    topList.forEach((f,i)=>{html+=`<div class="top-seller" style="margin-bottom:5px"><span class="top-rank">#${i+1}</span><span style="font-size:18px">${f.emoji}</span><span style="flex:1;font-weight:600;color:#5c4a3a;font-size:13px">${f.name}</span><span style="color:#a08e7a;font-size:12px">${f.q} stems</span></div>`});
+    html+=`</div>`;
+  }
+
+  html+=`</div>`;
+  return html;
+}
+
+// ═══ SALE ═══
+let saleState={step:'input',items:[],wraps:[],imageB64:null,loading:false};
+
+function saleHTML(){
+  const s=saleState;
+  let html=`<div class="page active"><div class="section-title">💐 Record a Sale</div>`;
+
+  if(s.step==='input'){
+    // AI photo option
+    if(state.settings.aiEnabled && state.settings.apiKey){
+      html+=`<div class="hint">Take a photo for AI identification, or select flowers manually below.</div>
+        <div class="photo-zone" onclick="document.getElementById('salePhoto').click()">
+          <div class="cam">📸</div><div class="t1">Snap the sold bouquet</div><div class="t2">AI will identify the flowers</div>
+        </div>
+        <input type="file" id="salePhoto" accept="image/*" capture="environment" style="display:none" onchange="handleSalePhoto(this)">`;
+      if(s.loading) html+=`<div class="loading"><span class="spin">🌸</span><div class="hint" style="margin-top:6px">Identifying flowers...</div></div>`;
+      html+=`<div style="text-align:center;color:#a08e7a;font-size:12px;padding:4px">— or select manually —</div>`;
+    } else {
+      html+=`<div class="hint">Select flowers from the catalog to record this sale.</div>`;
+    }
+
+    // Selected items
+    if(s.items.length){
+      html+=`<div style="font-size:12px;font-weight:700;color:#5c4a3a">Selected Flowers</div>`;
+      s.items.forEach((f,i)=>{
+        const info=CATALOG[f.type]||{emoji:'🌸'};
+        html+=`<div class="flower-row"><span class="em">${info.emoji}</span><span class="nm">${f.name}</span>
+          <div class="qty-ctrl"><button class="qty-btn" onclick="saleQty(${i},-1)">−</button>
+          <input class="qty-input" type="number" value="${f.quantity}" min="1" onchange="saleQtySet(${i},this.value)">
+          <button class="qty-btn" onclick="saleQty(${i},1)">+</button></div>
+          <button class="del-btn" onclick="saleDel(${i})">🗑</button></div>`;
+      });
+    }
+    if(s.wraps.length){
+      html+=`<div style="font-size:12px;font-weight:700;color:#5c4a3a;margin-top:4px">Wrapping</div>`;
+      s.wraps.forEach((w,i)=>{
+        html+=`<div class="flower-row"><span class="em">🎀</span><span class="nm">${w.name}</span>
+          <span style="font-size:12px;color:#a08e7a">×${w.quantity}</span>
+          <button class="del-btn" onclick="saleDelWrap(${i})">🗑</button></div>`;
+      });
+    }
+
+    // Catalog grid
+    html+=`<div style="font-size:12px;font-weight:700;color:#5c4a3a;margin-top:6px">Tap to Add Flowers</div>
+      <div class="catalog-grid">`;
+    Object.entries(CATALOG).forEach(([k,v])=>{
+      const inStock=state.inventory[k]||0;
+      html+=`<button class="catalog-item" onclick="saleAdd('${k}')" ${inStock<=0?'style="opacity:.4"':''}>
+        <span class="em">${v.emoji}</span><span class="nm">${v.name}</span>
+        <span style="font-size:9px;color:${inStock<=0?'#c0392b':'#a08e7a'}">${inStock} in stock</span>
+      </button>`;
+    });
+    html+=`</div>`;
+
+    // Wrapping
+    html+=`<div style="font-size:12px;font-weight:700;color:#5c4a3a;margin-top:6px">Add Wrapping / Extras</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">`;
+    Object.entries(WRAPPING).forEach(([k,v])=>{
+      html+=`<button class="btn btn-outline" style="font-size:11px;padding:6px 10px;border-radius:8px" onclick="saleAddWrap('${k}')">🎀 ${v.name}</button>`;
+    });
+    html+=`</div>`;
+
+    // Price + note
+    const suggested=s.items.reduce((a,f)=>a+((CATALOG[f.type]?.price||50)*f.quantity),0)+s.wraps.reduce((a,w)=>a+((WRAPPING[w.type]?.price||25)*w.quantity),0);
+    html+=`<div class="input-group"><label>Sale Price (₱)</label><input type="number" id="salePrice" placeholder="Suggested: ₱${suggested}" value="${s.customPrice||''}"></div>
+      <div class="input-group"><label>Customer Note (optional)</label><input type="text" id="saleNote" placeholder="e.g., DM order, walk-in, birthday..." value="${s.note||''}"></div>`;
+
+    if(s.items.length){
+      html+=`<div class="btn-row"><button class="btn btn-outline" onclick="saleReset()">Clear</button><button class="btn btn-primary" onclick="saleConfirm()">Confirm Sale ✓</button></div>`;
+    }
+  }
+
+  else if(s.step==='done'){
+    html+=`<div class="done-screen"><div class="big">✨</div><h3>Sale Recorded!</h3><p>Inventory has been updated.</p>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="saleReset()">Record Another Sale</button></div>`;
+  }
+
+  html+=`</div>`;
+  return html;
+}
+
+function saleAdd(key){
+  const ex=saleState.items.find(f=>f.type===key);
+  if(ex) ex.quantity++;
+  else saleState.items.push({type:key,name:CATALOG[key].name,quantity:1});
+  renderPage();
+}
+function saleAddWrap(key){
+  const ex=saleState.wraps.find(w=>w.type===key);
+  if(ex) ex.quantity++;
+  else saleState.wraps.push({type:key,name:WRAPPING[key].name,quantity:1});
+  renderPage();
+}
+function saleQty(i,d){saleState.items[i].quantity=Math.max(1,saleState.items[i].quantity+d);renderPage()}
+function saleQtySet(i,v){saleState.items[i].quantity=Math.max(1,parseInt(v)||1);renderPage()}
+function saleDel(i){saleState.items.splice(i,1);renderPage()}
+function saleDelWrap(i){saleState.wraps.splice(i,1);renderPage()}
+
+async function handleSalePhoto(input){
+  const file=input.files?.[0];if(!file)return;
+  saleState.loading=true;renderPage();
+  try{
+    const b64=await compressImage(file);
+    const result=await identifyFlowers(b64,'sale');
+    saleState.items=(result.flowers||[]).map(f=>({type:f.type,name:f.name||CATALOG[f.type]?.name||f.type,quantity:f.quantity||1}));
+    saleState.wraps=(result.wrapping||[]).map(w=>({type:w.type,name:w.name||WRAPPING[w.type]?.name||w.type,quantity:w.quantity||1}));
+  }catch(e){alert('AI identification failed. Please select flowers manually.\n'+e.message)}
+  saleState.loading=false;renderPage();
+}
+
+function saleConfirm(){
+  const priceInput=document.getElementById('salePrice')?.value;
+  const note=document.getElementById('saleNote')?.value||'';
+  const flowers=saleState.items;
+  const wraps=saleState.wraps;
+  const totalCost=flowers.reduce((a,f)=>a+((CATALOG[f.type]?.cost||20)*f.quantity),0)+wraps.reduce((a,w)=>a+((WRAPPING[w.type]?.cost||10)*w.quantity),0);
+  const totalPrice=parseInt(priceInput)||flowers.reduce((a,f)=>a+((CATALOG[f.type]?.price||50)*f.quantity),0)+wraps.reduce((a,w)=>a+((WRAPPING[w.type]?.price||25)*w.quantity),0);
+
+  // Deduct inventory
+  flowers.forEach(f=>{
+    if(state.inventory[f.type]!==undefined) state.inventory[f.type]=Math.max(0,state.inventory[f.type]-f.quantity);
+  });
+
+  state.sales.unshift({
+    id:Date.now().toString(36),date:new Date().toISOString(),
+    flowers,wrapping:wraps,totalCost,totalPrice,profit:totalPrice-totalCost,
+    customerNote:note
+  });
+  save();
+  saleState.step='done';
+  renderPage();
+}
+
+function saleReset(){
+  saleState={step:'input',items:[],wraps:[],imageB64:null,loading:false};
+  renderPage();
+}
+
+// ═══ RESTOCK ═══
+let restockState={step:'input',items:[],loading:false};
+
+function restockHTML(){
+  const s=restockState;
+  let html=`<div class="page active"><div class="section-title">📦 Restock Flowers</div>`;
+
+  if(s.step==='input'){
+    if(state.settings.aiEnabled && state.settings.apiKey){
+      html+=`<div class="hint">Snap a photo of your flower delivery for AI counting, or add manually below.</div>
+        <div class="photo-zone" onclick="document.getElementById('restockPhoto').click()">
+          <div class="cam">📸</div><div class="t1">Snap the flower delivery</div><div class="t2">AI will count the stems</div>
+        </div>
+        <input type="file" id="restockPhoto" accept="image/*" capture="environment" style="display:none" onchange="handleRestockPhoto(this)">`;
+      if(s.loading) html+=`<div class="loading"><span class="spin">🌿</span><div class="hint" style="margin-top:6px">Counting stems...</div></div>`;
+      html+=`<div style="text-align:center;color:#a08e7a;font-size:12px;padding:4px">— or add manually —</div>`;
+    } else {
+      html+=`<div class="hint">Select flowers to add to your inventory.</div>`;
+    }
+
+    if(s.items.length){
+      html+=`<div style="font-size:12px;font-weight:700;color:#5c4a3a">Flowers to Add</div>`;
+      s.items.forEach((f,i)=>{
+        const info=CATALOG[f.type]||{emoji:'🌸'};
+        html+=`<div class="flower-row"><span class="em">${info.emoji}</span><span class="nm">${f.name}</span>
+          <div class="qty-ctrl"><button class="qty-btn" onclick="restockQty(${i},-1)">−</button>
+          <input class="qty-input" type="number" value="${f.quantity}" min="1" onchange="restockQtySet(${i},this.value)">
+          <button class="qty-btn" onclick="restockQty(${i},1)">+</button></div>
+          <button class="del-btn" onclick="restockDel(${i})">🗑</button></div>`;
+      });
+    }
+
+    html+=`<div style="font-size:12px;font-weight:700;color:#5c4a3a;margin-top:6px">Tap to Add</div><div class="catalog-grid">`;
+    Object.entries(CATALOG).forEach(([k,v])=>{
+      html+=`<button class="catalog-item" onclick="restockAdd('${k}')"><span class="em">${v.emoji}</span><span class="nm">${v.name}</span></button>`;
+    });
+    html+=`</div>`;
+
+    html+=`<div class="input-group"><label>Total Cost Paid (₱)</label><input type="number" id="restockCost" placeholder="How much did you pay?" value="${s.cost||''}"></div>
+      <div class="input-group"><label>Supplier (optional)</label><input type="text" id="restockSupplier" placeholder="e.g., Dangwa, local grower..." value="${s.supplier||''}"></div>`;
+
+    if(s.items.length){
+      html+=`<div class="btn-row"><button class="btn btn-outline" onclick="restockReset()">Clear</button><button class="btn btn-green" onclick="restockConfirm()">Add to Inventory ✓</button></div>`;
+    }
+  }
+
+  else if(s.step==='done'){
+    html+=`<div class="done-screen"><div class="big">📦</div><h3>Restocked!</h3><p>Inventory updated with new stems.</p>
+      <button class="btn btn-green" style="margin-top:16px" onclick="restockReset()">Add More Stock</button></div>`;
+  }
+
+  html+=`</div>`;
+  return html;
+}
+
+function restockAdd(key){
+  const ex=restockState.items.find(f=>f.type===key);
+  if(ex) ex.quantity+=5; // bulk default +5
+  else restockState.items.push({type:key,name:CATALOG[key].name,quantity:10});
+  renderPage();
+}
+function restockQty(i,d){restockState.items[i].quantity=Math.max(1,restockState.items[i].quantity+d);renderPage()}
+function restockQtySet(i,v){restockState.items[i].quantity=Math.max(1,parseInt(v)||1);renderPage()}
+function restockDel(i){restockState.items.splice(i,1);renderPage()}
+
+async function handleRestockPhoto(input){
+  const file=input.files?.[0];if(!file)return;
+  restockState.loading=true;renderPage();
+  try{
+    const b64=await compressImage(file);
+    const result=await identifyFlowers(b64,'restock');
+    restockState.items=(result.flowers||[]).map(f=>({type:f.type,name:f.name||CATALOG[f.type]?.name||f.type,quantity:f.quantity||1}));
+  }catch(e){alert('AI identification failed. Please add flowers manually.\n'+e.message)}
+  restockState.loading=false;renderPage();
+}
+
+function restockConfirm(){
+  const cost=parseInt(document.getElementById('restockCost')?.value)||0;
+  const supplier=document.getElementById('restockSupplier')?.value||'';
+  restockState.items.forEach(f=>{
+    state.inventory[f.type]=(state.inventory[f.type]||0)+f.quantity;
+  });
+  state.purchases.unshift({
+    id:Date.now().toString(36),date:new Date().toISOString(),
+    flowers:restockState.items,totalCost:cost,supplier
+  });
+  save();
+  restockState.step='done';
+  renderPage();
+}
+
+function restockReset(){
+  restockState={step:'input',items:[],loading:false};
+  renderPage();
+}
+
+// ═══ INVENTORY ═══
+function inventoryHTML(){
+  const entries=Object.entries(state.inventory).map(([k,q])=>({k,q,...(CATALOG[k]||{name:k,emoji:'🌸',cost:0,price:0})})).sort((a,b)=>b.q-a.q);
+  let html=`<div class="page active"><div class="section-title">🌿 Current Inventory</div>`;
+
+  if(!entries.length){
+    html+=`<div class="done-screen"><div class="big">🌱</div><p class="hint">No inventory yet. Use "Restock" to add flowers.</p></div>`;
+  } else {
+    entries.forEach(f=>{
+      const cls=f.q<=0?'out':f.q<=10?'low':'';
+      const qcls=f.q<=0?'out':f.q<=10?'low':'';
+      html+=`<div class="inv-row ${cls}"><span style="font-size:20px">${f.emoji}</span>
+        <div style="flex:1"><div style="font-weight:600;color:#5c4a3a;font-size:13px">${f.name}</div>
+        <div style="font-size:10px;color:#a08e7a">Cost ₱${f.cost} · Sell ₱${f.price}</div></div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="invAdj('${f.k}',-1)">−</button>
+          <div class="inv-qty ${qcls}">${f.q}</div>
+          <button class="qty-btn" onclick="invAdj('${f.k}',1)">+</button>
+        </div></div>`;
+    });
+    html+=`<div class="hint" style="text-align:center;font-size:11px;margin-top:4px">Use +/− to manually adjust quantities</div>`;
+  }
+
+  html+=`<button class="btn btn-outline" style="width:100%;margin-top:8px" onclick="clearZeroStock()">🗑 Remove Zero-Stock Items</button>`;
+  html+=`</div>`;
+  return html;
+}
+
+function invAdj(key,d){
+  state.inventory[key]=Math.max(0,(state.inventory[key]||0)+d);
+  save();renderPage();
+}
+
+function clearZeroStock(){
+  Object.keys(state.inventory).forEach(k=>{if(state.inventory[k]<=0)delete state.inventory[k]});
+  save();renderPage();
+}
+
+// ═══ HISTORY ═══
+let historyTab='sales';
+function historyHTML(){
+  const items=historyTab==='sales'?state.sales:state.purchases;
+  let html=`<div class="page active"><div class="section-title">📋 History</div>
+    <div class="sub-tabs">
+      <button class="sub-tab ${historyTab==='sales'?'active':''}" onclick="historyTab='sales';renderPage()">💐 Sales</button>
+      <button class="sub-tab ${historyTab==='purchases'?'active':''}" onclick="historyTab='purchases';renderPage()">📦 Purchases</button>
+    </div>`;
+
+  if(!items.length){
+    html+=`<div class="done-screen"><p class="hint">No ${historyTab} recorded yet.</p></div>`;
+  } else {
+    items.forEach((item,idx)=>{
+      html+=`<div class="history-item"><div class="history-top">
+        <span class="history-date">${new Date(item.date).toLocaleDateString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>`;
+      if(historyTab==='sales'){
+        html+=`<span class="history-price">₱${(item.totalPrice||0).toLocaleString()}</span>`;
+      } else {
+        html+=`<span class="history-price expense">−₱${(item.totalCost||0).toLocaleString()}</span>`;
+      }
+      html+=`</div><div class="flower-tags">`;
+      (item.flowers||[]).forEach(f=>{
+        html+=`<span class="flower-tag">${CATALOG[f.type]?.emoji||'🌸'} ${f.name} ×${f.quantity}</span>`;
+      });
+      html+=`</div>`;
+      if(item.customerNote) html+=`<div class="history-note">${item.customerNote}</div>`;
+      if(historyTab==='sales'&&item.profit!==undefined) html+=`<div style="margin-top:4px;font-size:10px;color:#c9956b">Profit: ₱${item.profit.toLocaleString()}</div>`;
+      if(item.supplier) html+=`<div style="margin-top:3px;font-size:10px;color:#8a7560">Supplier: ${item.supplier}</div>`;
+      html+=`<button onclick="deleteHistoryItem('${historyTab}',${idx})" style="margin-top:6px;background:none;border:none;font-size:10px;color:#c0392b;cursor:pointer">Delete</button>`;
+      html+=`</div>`;
+    });
+  }
+
+  if(items.length){
+    html+=`<button class="btn btn-outline" style="width:100%;margin-top:4px;font-size:12px;color:#c0392b;border-color:rgba(220,80,60,.2)" onclick="clearHistory('${historyTab}')">Clear All ${historyTab==='sales'?'Sales':'Purchases'}</button>`;
+  }
+
+  html+=`</div>`;
+  return html;
+}
+
+function deleteHistoryItem(type,idx){
+  if(!confirm('Delete this record?'))return;
+  if(type==='sales') state.sales.splice(idx,1);
+  else state.purchases.splice(idx,1);
+  save();renderPage();
+}
+function clearHistory(type){
+  if(!confirm(`Clear all ${type}? This cannot be undone.`))return;
+  if(type==='sales') state.sales=[];
+  else state.purchases=[];
+  save();renderPage();
+}
+
+// ═══ SETTINGS ═══
+function settingsHTML(){
+  const s=state.settings;
+  let html=`<div class="page active"><div class="section-title">⚙️ Settings</div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-weight:700;color:#5c4a3a;font-size:14px">AI Flower Identification</div>
+      <div class="hint" style="font-size:12px">When enabled, you can snap a photo and Claude will identify the flowers automatically. Requires an Anthropic API key.</div>
+      <div class="settings-row">
+        <div style="flex:1"><div style="font-weight:600;color:#5c4a3a;font-size:13px">Enable AI Mode</div>
+        <div style="font-size:11px;color:#a08e7a">Uses Claude Sonnet for identification</div></div>
+        <button class="toggle ${s.aiEnabled?'on':''}" onclick="toggleAI()"></button>
+      </div>
+      ${s.aiEnabled?`<div class="input-group"><label>Anthropic API Key</label>
+        <input type="password" id="apiKeyInput" value="${s.apiKey||''}" placeholder="sk-ant-..." onchange="saveApiKey(this.value)">
+        <div style="font-size:10px;color:#a08e7a">Your key is stored locally on this device only.</div></div>`:''}
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-weight:700;color:#5c4a3a;font-size:14px">Default Prices</div>
+      <div class="hint" style="font-size:12px">Current flower prices used for estimates. To edit, update the catalog in the code.</div>
+      <div style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px">
+        ${Object.entries(CATALOG).map(([k,v])=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px solid #f0e8de">
+          <span>${v.emoji}</span><span style="flex:1;color:#5c4a3a;font-weight:500">${v.name}</span>
+          <span style="color:#a08e7a">Cost ₱${v.cost}</span><span style="color:#5c4a3a;font-weight:600">Sell ₱${v.price}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-weight:700;color:#5c4a3a;font-size:14px">Data Management</div>
+      <button class="btn btn-outline" style="width:100%;font-size:12px" onclick="exportData()">📤 Export All Data (JSON)</button>
+      <button class="btn btn-outline" style="width:100%;font-size:12px;color:#c0392b;border-color:rgba(220,80,60,.2)" onclick="resetAll()">🗑 Reset All Data</button>
+    </div>
+
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-family:'Playfair Display',serif;color:#5c4a3a;font-size:14px">Hanakoto Florelle</div>
+      <div style="font-size:10px;color:#c9956b;letter-spacing:1px;margin-top:2px">Express your feelings</div>
+      <div style="font-size:10px;color:#a08e7a;margin-top:8px">POS v1.0 — Made for Gio's team in Pasig</div>
+    </div>
+  </div>`;
+  return html;
+}
+
+function toggleAI(){
+  state.settings.aiEnabled=!state.settings.aiEnabled;
+  save();renderPage();
+}
+function saveApiKey(v){
+  state.settings.apiKey=v.trim();
+  save();
+}
+function exportData(){
+  const data=JSON.stringify({inventory:state.inventory,sales:state.sales,purchases:state.purchases,exported:new Date().toISOString()},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`hanakoto-pos-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function resetAll(){
+  if(!confirm('⚠️ This will delete ALL inventory, sales, and purchase history. Are you sure?'))return;
+  if(!confirm('Really sure? This cannot be undone.'))return;
+  state.inventory={};state.sales=[];state.purchases=[];
+  save();renderPage();
+}
+
+// ═══ INIT ═══
+renderTabs();
+renderPage();
+</script>
+</body>
+</html>
